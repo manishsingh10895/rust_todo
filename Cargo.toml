@@ -1,0 +1,32 @@
+[package]
+name = "todo-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-identity = "0.4"
+actix-web = "4.0"
+chrono = { version = "0.4", features = ["serde"] }
+derive_more = "0.99"
+diesel = { version = "1.4", features = ["postgres", "uuidv07", "r2d2", "chrono"] }
+dotenv = "0.15"
+env_logger = "0.9"
+futures = "0.3.8"
+lazy_static = "1.4"
+r2d2 = "0.8"
+rust-argon2 = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sparkpost = "0.5"
+uuid = { version = "0.8", features = ["serde", "v4"] }
+time = "0.3"
+jsonwebtoken = "8"
+clap = { version = "3.2.17", features = ["derive"] }
+inquire = "0.3.0"
+reqwest = { version = "0.11.11", features = ["json", "blocking"]}
+dirs = "4.0.0"
+tui = { version = "0.19.0", features = ["crossterm"]}
+crossterm = "0.25.0"
+anyhow = "1.0.65"
