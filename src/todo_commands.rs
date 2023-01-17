@@ -15,14 +15,19 @@ pub fn create_new_todo() -> Result<(), Box<dyn std::error::Error>> {
         .with_help_message("Title for your new todo")
         .prompt()?;
 
+    let token = get_saved_token()?;
+
     let client = reqwest::blocking::Client::new();
     let resp = client
         .post(make_api_url("todo"))
+        .header(AUTHORIZATION, format!("Bearer {}", token))
         .header(CONTENT_TYPE, "application/json")
         .json::<serde_json::Value>(&serde_json::json!({ "title": title }))
         .send()?;
 
     let _: serde_json::Value = resp.json()?;
+
+    println!("Todo created");
 
     Ok(())
 }
