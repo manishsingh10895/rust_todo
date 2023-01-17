@@ -72,7 +72,7 @@ impl From<Claims> for DecodedUser {
 pub struct Authenticated(DecodedUser);
 
 /// Implementing `FromRequest` allows to extract `DecodedUser`
-/// from any incoming request where `BasicAuth` middleware is user
+/// from any incoming request where `BasicAuth` middleware is used
 impl FromRequest for Authenticated {
     type Error = TodoApiError;
     // Using `Ready` Future as we don't do any
@@ -151,7 +151,7 @@ where
     actix_web::dev::forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        let mut error: TodoApiError = TodoApiError::AuthError(AuthError::InvalidToken);
+        let error: TodoApiError;
 
         match req.headers().get("Authorization") {
             Some(auth_header) => match decode_token::<Claims>(auth_header) {

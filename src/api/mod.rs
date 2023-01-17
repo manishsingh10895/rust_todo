@@ -1,4 +1,4 @@
-pub mod api;
+pub(crate) mod api;
 mod auth_handler;
 mod auth_utils;
 mod dtos;

@@ -14,7 +14,7 @@ pub struct Todo {
 }
 
 impl Todo {
-    pub fn from_title(title: String, user_id: uuid::Uuid) -> Self {
+    pub fn from(title: String, user_id: uuid::Uuid) -> Self {
         Self {
             id: uuid::Uuid::new_v4(),
             completed: false,

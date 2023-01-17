@@ -9,17 +9,13 @@ use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use utils::is_server_running;
 
-use crate::{
-    config::API_URL,
-    utils::{make_api_url, save_token},
-};
+use crate::utils::{make_api_url, save_token};
 mod api;
 mod config;
 mod errors;
 mod models;
 mod schema;
 mod todo_commands;
-mod todo_list_renderer;
 mod ui;
 mod utils;
 
@@ -54,6 +50,8 @@ fn prompt_signup() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Signup to Todo");
 
+    let name = Text::new("Name").prompt()?;
+
     let email = Text::new("Email").prompt()?;
 
     let pass = Password::new("Password").prompt()?;
@@ -63,12 +61,15 @@ fn prompt_signup() -> Result<(), Box<dyn std::error::Error>> {
     let resp = client
         .post(make_api_url("auth/signup"))
         .header(CONTENT_TYPE, "application/json")
-        .json::<serde_json::Value>(&serde_json::json!({"email": email, "password": pass}))
+        .json::<serde_json::Value>(
+            &serde_json::json!({"email": email, "password": pass, "name": name}),
+        )
         .send()?;
 
+    let res_status = resp.status();
     let resp_json: serde_json::Value = resp.json()?;
 
-    if resp_json.is_object() {
+    if resp_json.is_object() && res_status == 200 {
         let data = resp_json.as_object().ok_or("Invalid response")?;
 
         let token = data.get("token").ok_or("Token Not Found, Signup Failed")?;
@@ -76,6 +77,10 @@ fn prompt_signup() -> Result<(), Box<dyn std::error::Error>> {
         save_token(token.as_str().unwrap())?;
 
         println!("Signup Successful");
+
+        println!("You are now logged in");
+
+        return Ok(());
     }
 
     Err(Box::new(Error::new(
@@ -116,6 +121,8 @@ fn prompt_login() -> Result<(), Box<dyn std::error::Error>> {
 
         save_token(token.as_str().unwrap())?;
 
+        println!("You are not logged in");
+
         return Ok(());
     }
 
@@ -129,6 +136,7 @@ fn prompt_login() -> Result<(), Box<dyn std::error::Error>> {
 /// if error occurs
 fn super_prompt(title: &str, function: Box<dyn Fn() -> Result<(), Box<dyn std::error::Error>>>) {
     loop {
+        println!("\n{}\n", title);
         let res = function();
 
         if res.is_ok() {
@@ -157,7 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = TodoArgs::parse_from(args);
 
     if args.start_server {
-        if !is_server_running("127.0.0.1:5900").unwrap() {
+        if !is_server_running("5900").unwrap() {
             println!("Starting Server on PORT 5900");
             start_server()?;
         } else {

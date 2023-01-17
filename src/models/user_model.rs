@@ -36,11 +36,11 @@ pub struct SlimUser {
     pub name: String,
 }
 
-impl AsRef<SlimUser> for SlimUser {
-    fn as_ref(&self) -> &SlimUser {
-        self
-    }
-}
+// impl AsRef<SlimUser> for SlimUser {
+//     fn as_ref(&self) -> &SlimUser {
+//         self
+//     }
+// }
 
 impl From<User> for SlimUser {
     fn from(user: User) -> Self {
@@ -53,6 +53,7 @@ impl From<User> for SlimUser {
 }
 
 /// Gets a user by id
+#[allow(dead_code)]
 pub fn get_user_by_id(pool: web::Data<Pool>, user_id: String) -> Result<User, TodoApiError> {
     use crate::schema::users::dsl::*;
 

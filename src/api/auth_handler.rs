@@ -8,7 +8,6 @@ use crate::{
         middlewares::auth::Claims,
     },
     models::{
-        todo_model::Todo,
         user_model::{SlimUser, User},
         Pool,
     },

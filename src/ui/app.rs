@@ -1,11 +1,4 @@
-use tui::{
-    backend::{Backend, CrosstermBackend},
-    layout::{Alignment, Constraint, Corner, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    text::{Span, Spans, Text},
-    widgets::{Block, Borders, Clear, List, ListItem, ListState},
-    Frame, Terminal,
-};
+use tui::widgets::ListState;
 
 use crate::models::todo_model::Todo;
 
@@ -25,7 +18,9 @@ impl<T> StatefulList<T> {
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.items.len() - 1 {
+                if self.items.len() == 0 {
+                    0
+                } else if i >= self.items.len() - 1 {
                     0
                 } else {
                     i + 1
@@ -40,7 +35,11 @@ impl<T> StatefulList<T> {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.items.len() - 1
+                    if self.items.len() > 0 {
+                        self.items.len() - 1
+                    } else {
+                        0
+                    }
                 } else {
                     i - 1
                 }
@@ -125,6 +124,8 @@ impl App {
         self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
     }
 
+    /// Get the current active route, but mutable
+    #[allow(dead_code)]
     pub fn get_current_route_mut(&mut self) -> &mut Route {
         self.navigation_stack.last_mut().unwrap()
     }

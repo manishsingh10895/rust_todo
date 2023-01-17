@@ -4,6 +4,7 @@ use crate::api::errors::TodoApiError;
 
 #[derive(Debug)]
 pub enum TodoError {
+    #[allow(dead_code)]
     ApiError(TodoApiError),
     HttpErrror(String),
     OperationError,
@@ -44,7 +45,7 @@ impl std::error::Error for TodoError {
 }
 
 impl From<BaseError> for TodoError {
-    fn from(e: BaseError) -> Self {
+    fn from(_: BaseError) -> Self {
         TodoError::OperationError
     }
 }

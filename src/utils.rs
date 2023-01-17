@@ -1,15 +1,19 @@
 use std::{
     error,
     io::Write,
-    path::PathBuf,
     process::{Command, Stdio},
     str::FromStr,
 };
 
 use crate::config::API_URL;
 
-/// Checks if the `Todo` server is already running
-pub fn is_server_running(address: &str) -> Result<bool, Box<dyn std::error::Error>> {
+/// Checks if the `Todo` server is already running for windows
+///
+/// # Arguments
+/// * `port` server port
+#[cfg(windows)]
+pub fn is_server_running(port: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    let address = format!("127.0.0.1:{}", port);
     let cmd_netstat = Command::new("netstat")
         .arg("-ano")
         //.arg("-n")
@@ -23,6 +27,38 @@ pub fn is_server_running(address: &str) -> Result<bool, Box<dyn std::error::Erro
     let output = String::from_utf8(cmd_netstat.stdout)?;
 
     if output.contains(address) {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Checks if `Todo` server is running macos
+/// # Arguments
+/// * `port` server port
+#[cfg(target_os = "macos")]
+pub fn is_server_running(port: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    let address = format!("localhost:{}", port);
+    let cmd_lsof = Command::new("lsof")
+        .arg("-i")
+        .arg("-P")
+        //.arg("-o")
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("error command");
+
+    let cmd_grep = Command::new("grep")
+        .arg("LISTEN")
+        .stdin(Stdio::from(cmd_lsof.stdout.unwrap()))
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("grep error command");
+
+    let cmd_result = cmd_grep.wait_with_output()?;
+
+    let output = String::from_utf8(cmd_result.stdout)?;
+
+    if output.contains(&address) {
         Ok(true)
     } else {
         Ok(false)
@@ -81,9 +117,16 @@ pub fn make_api_url(resource: &str) -> String {
 
 #[cfg(test)]
 mod utils_test {
-    use super::{get_saved_token, make_api_url, save_token};
+    use super::{get_saved_token, is_server_running, make_api_url, save_token};
     use dirs::home_dir;
     use std::path::PathBuf;
+
+    #[test]
+    fn test_is_server_running() {
+        let res = is_server_running("5900");
+
+        assert_eq!(res.is_ok(), true);
+    }
 
     #[test]
     fn test_make_api_url() {

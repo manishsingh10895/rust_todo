@@ -21,7 +21,6 @@ pub enum AuthError {
     NoAuthorizationHeader,
     InvalidAuthorizationHeader,
     TokenExpired,
-
     Unauthorized,
 }
 
@@ -124,6 +123,8 @@ impl From<DBError> for TodoApiError {
                 if let DatabaseErrorKind::UniqueViolation = kind {
                     let message: String =
                         info.details().unwrap_or_else(|| info.message()).to_string();
+
+                    let message = format!("DatabaseError: {}", message);
 
                     return TodoApiError::BadRequest(message);
                 }

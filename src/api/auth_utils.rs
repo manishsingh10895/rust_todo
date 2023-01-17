@@ -1,15 +1,18 @@
 use actix_web::http::header::HeaderValue;
 use argon2::Config;
+use diesel::{r2d2::ConnectionManager, PgConnection};
 use jsonwebtoken::{decode, decode_header, encode, DecodingKey, EncodingKey, Header, Validation};
+use r2d2::PooledConnection;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{from_value, Value};
 
-use crate::models::user_model::SlimUser;
+use crate::models::{todo_model::Todo, user_model::SlimUser};
 
 use super::{
     errors::{AuthError, TodoApiError},
-    middlewares::auth::{Claims, DecodedUser},
+    middlewares::auth::Claims,
 };
+use diesel::prelude::*;
 
 lazy_static::lazy_static! {
     pub static ref SECRET_KEY: String = std::env::var("SECRET_KEY").unwrap_or_else(|_| "0123".repeat(8));
@@ -42,6 +45,30 @@ pub fn verify_hash(hash: &str, password: &str) -> Result<bool, TodoApiError> {
             TodoApiError::AuthError(crate::api::errors::AuthError::InvalidToken)
         },
     )
+}
+
+///Verifies that a user with `user_id` has access to todo with `todo_id`
+pub fn verify_todo_owner(
+    conn: &PooledConnection<ConnectionManager<PgConnection>>,
+    requester_id: &str,
+    todo_id: &str,
+) -> Result<(), TodoApiError> {
+    use crate::schema::todos::dsl::*;
+
+    let todo_id = uuid::Uuid::parse_str(todo_id).unwrap();
+
+    let requester_id = uuid::Uuid::parse_str(requester_id).unwrap();
+
+    let result: Vec<Todo> = todos
+        .filter(id.eq(todo_id))
+        .filter(user_id.eq(requester_id))
+        .load::<Todo>(conn)?;
+
+    if result.len() == 0 {
+        return Err(TodoApiError::NotFound("Todo".to_string()));
+    }
+
+    Ok(())
 }
 
 // JWT STUFF

@@ -5,7 +5,7 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 
 use crate::{
     models::todo_model::Todo,
-    todo_list_renderer,
+    ui::todo_list_renderer::render_todo_list,
     utils::{get_saved_token, make_api_url},
 };
 
@@ -16,9 +16,8 @@ pub fn create_new_todo() -> Result<(), Box<dyn std::error::Error>> {
         .prompt()?;
 
     let client = reqwest::blocking::Client::new();
-
     let resp = client
-        .post(make_api_url("auth/signup"))
+        .post(make_api_url("todo"))
         .header(CONTENT_TYPE, "application/json")
         .json::<serde_json::Value>(&serde_json::json!({ "title": title }))
         .send()?;
@@ -50,7 +49,7 @@ pub fn list_todos() -> Result<(), Box<dyn std::error::Error>> {
 
             let list: Vec<Todo> = serde_json::from_value(todos)?;
 
-            todo_list_renderer::render_todo_list(list)?;
+            render_todo_list(list)?;
         }
         reqwest::StatusCode::UNAUTHORIZED | reqwest::StatusCode::FORBIDDEN => {
             eprintln!("Login First");
